@@ -1,9 +1,16 @@
 <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
-  <category name="PH" colour="#26A69A" icon="flask">
-    <block type="ph_init"></block>
-    <block type="ph_calibrate"></block>
-    <block type="ph_get"></block>
-    <block type="ph_get_calib"></block>
-    <block type="ph_set_calib"></block>
+  <category id="ph_sensor" name="Cảm biến pH" colour="#00a86b" icon="flask">
+    <block type="uno_ph_create"></block>
+    <block type="uno_ph_read"></block>
+    <block type="uno_ph_read_voltage"></block>
+    <block type="uno_ph_add_point">
+      <value name="PH">
+        <shadow type="math_number">
+          <field name="NUM">6.86</field>
+        </shadow>
+      </value>
+    </block>
+    <block type="uno_ph_num_points"></block>
+    <block type="uno_ph_reset"></block>
   </category>
 </xml>

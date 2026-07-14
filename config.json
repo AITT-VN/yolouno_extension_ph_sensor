@@ -1,12 +1,9 @@
 {
-  "name": "PH",
-  "description": "Thư viện cảm biến pH (analog) cho Yolo UNO",
-  "libs": ["ph_sensor.py"],
+  "name": "Cảm biến pH",
+  "description": "Mục mở rộng cho Yolo UNO đọc cảm biến pH (analog)",
+  "libs": ["ph_meter.py"],
   "blocks": ["definition.js"],
   "toolbox": "toolbox.xml",
-  "languages": {
-    "en": "en.js",
-    "vi": "vi.js"
-  },
+  "languages": {},
   "poster": "poster.png"
 }
