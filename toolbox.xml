@@ -1,0 +1,9 @@
+<xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
+  <category name="PH" colour="#26A69A" icon="flask">
+    <block type="ph_init"></block>
+    <block type="ph_calibrate"></block>
+    <block type="ph_get"></block>
+    <block type="ph_get_calib"></block>
+    <block type="ph_set_calib"></block>
+  </category>
+</xml>
