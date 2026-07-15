@@ -9,6 +9,7 @@
 # ============================================================
 
 import json
+import time
 from machine import Pin, ADC
 
 # --- Duong pH mac dinh (khi CHUA co diem calib nao) ---
@@ -26,8 +27,10 @@ class PHMeter:
     """Doc & hieu chinh cam bien pH analog."""
 
     def __init__(self, ph_pin, sample_count=20, calib_file="ph_calib.json", max_pts=6,
-                 ema_alpha=0.25, ema_jump_v=0.5):
-        self.sample_count = sample_count     # so mau moi lan doc (median)
+                 ema_alpha=0.25, ema_jump_v=0.5, sample_gap_us=1000):
+        self.sample_count = sample_count     # so mau moi lan doc
+        self.sample_gap_us = sample_gap_us   # gian cach giua cac mau (us)
+        # 20 mau x 1000us = 20ms = dung 1 chu ky dien luoi 50Hz -> khu nhieu hum.
         self.calib_file = calib_file         # file luu diem calib
         self.max_pts = max_pts               # so diem calib toi da
 
@@ -55,19 +58,23 @@ class PHMeter:
         self.load_calib()
 
     # ------------------------------------------------------------
-    #  DOC DIEN AP (V) - loc TRUNG VI (median)
+    #  DOC DIEN AP (V) - TRUNG BINH nhieu mau trai deu theo thoi gian
     # ------------------------------------------------------------
     def read_voltage(self):
+        """Doc dien ap trung binh:
+        - Lay 'sample_count' mau, cach nhau 'sample_gap_us' -> trai deu ~1 chu ky
+          dien luoi (20ms) de KHU nhieu hum 50Hz (nhieu hinh sin tu triet tieu).
+        - Bo 1 mau nho nhat & 1 mau lon nhat (chong gai nhon) roi lay TRUNG BINH."""
         buf = []
-        for _ in range(self.sample_count):
+        for i in range(self.sample_count):
             buf.append(self._read_uv())
-        buf.sort()
-        n = self.sample_count
-        if n & 1:
-            uv = buf[n // 2]
-        else:
-            uv = (buf[n // 2 - 1] + buf[n // 2]) / 2.0
-        return uv / 1_000_000.0   # microvolt -> V
+            if i < self.sample_count - 1:
+                time.sleep_us(self.sample_gap_us)
+        if len(buf) >= 4:
+            buf.sort()
+            buf = buf[1:-1]          # bo min & max
+        uv = sum(buf) / len(buf)     # trung binh
+        return uv / 1_000_000.0      # microvolt -> V
 
     def read_voltage_smooth(self):
         """Doc dien ap (V) da lam muot bang EMA.
@@ -108,12 +115,13 @@ class PHMeter:
         return ph
 
     def read_ph(self):
-        """Doc pH hien tai (median + EMA lam muot + ap dung hieu chinh)."""
-        return self.calc_ph(self.read_voltage_smooth())
+        """Doc pH hien tai (median + EMA lam muot + ap dung hieu chinh).
+        Lam tron 1 chu so thap phan (vd 7.2)."""
+        return round(self.calc_ph(self.read_voltage_smooth()), 1)
 
     def read_ph_raw(self):
         """Doc pH tuc thoi, CHI median (khong EMA) - de kiem tra / phan ung nhanh."""
-        return self.calc_ph(self.read_voltage())
+        return round(self.calc_ph(self.read_voltage()), 1)
 
     def update_regression(self):
         """Khop duong thang least-squares (pH theo V) qua cac diem calib.
@@ -175,6 +183,19 @@ class PHMeter:
     @property
     def n_pts(self):
         return len(self.pts)
+
+    def describe(self):
+        """In thong tin hieu chinh hien tai ra Serial (de kiem tra / debug).
+        Gom: duong dang dung, cac diem calib da luu."""
+        print("--- THONG TIN HIEU CHINH pH ---")
+        print("  Duong hien tai: pH = {:.4f} * V + {:.4f}".format(self.slope, self.offset))
+        if self.n_pts == 0:
+            print("  (chua co diem calib - dang dung duong mac dinh)")
+        else:
+            print("  So diem calib: {}".format(self.n_pts))
+            for i, (v, ph) in enumerate(self.pts):
+                print("    #{}: V={:.3f} -> pH {:.2f}".format(i + 1, v, ph))
+        print("-------------------------------")
 
     def reset_calib(self):
         """Xoa toan bo diem calib."""

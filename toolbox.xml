@@ -10,7 +10,6 @@
         </shadow>
       </value>
     </block>
-    <block type="uno_ph_num_points"></block>
     <block type="uno_ph_reset"></block>
   </category>
 </xml>

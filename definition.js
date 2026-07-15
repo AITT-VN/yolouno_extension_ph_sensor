@@ -173,3 +173,27 @@ Blockly.Blocks["uno_ph_reset"] = {
 Blockly.Python["uno_ph_reset"] = function (block) {
   return "ph_sensor.reset_calib()\n";
 };
+
+// -----------------------------------------------------------
+// 7) IN thong tin hieu chinh (duong + cac diem calib) ra Serial
+// -----------------------------------------------------------
+Blockly.Blocks["uno_ph_describe"] = {
+  init: function () {
+    this.jsonInit({
+      type: "uno_ph_describe",
+      message0: "in thông tin hiệu chỉnh pH ra Serial",
+      previousStatement: null,
+      nextStatement: null,
+      colour: PHColorBlock,
+      tooltip: "In đường pH đang dùng và các điểm hiệu chỉnh đã lưu ra Serial",
+      helpUrl: "",
+    });
+  },
+  getDeveloperVars: function () {
+    return ["ph_sensor"];
+  },
+};
+
+Blockly.Python["uno_ph_describe"] = function (block) {
+  return "ph_sensor.describe()\n";
+};
